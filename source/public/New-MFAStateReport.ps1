@@ -84,7 +84,7 @@ Function New-MFAStateReport {
     )
 
     # add method types
-    $mfa_method_types = @(($InputObject | Where-Object { $_.'MFA Method' }).'MFA Method' | Group-Object | Sort-Object Count -Descending | Select-Object Name, Count)
+    $mfa_method_types = @(($InputObject | Where-Object { $_.'Default MFA Method' }).'Default MFA Method' | Group-Object | Sort-Object Count -Descending | Select-Object Name, Count)
     if ($mfa_method_types.count -gt 0) {
         foreach ($item in $mfa_method_types) {
             $mfa_summary += ([PSCustomObject]@{Name = $item.Name; Value = $Item.Count ; Type = 'Method Type' })
@@ -102,7 +102,7 @@ Function New-MFAStateReport {
                     Value = $Item.Count;
                     Type  = $(
                         if ($Critical_Admin_Roles -contains ($item.Name)) {
-                            'Admin Role,Critical,MFA Off'
+                            'Critical Admin Role,MFA Off'
                         }
                         else {
                             'Admin Role,MFA Off'
@@ -112,8 +112,6 @@ Function New-MFAStateReport {
             )
         }
     }
-
-
 
     #EndRegion Summary Object
 
@@ -133,7 +131,7 @@ Function New-MFAStateReport {
     $splat = @{
         InputObject   = $mfa_summary | Where-Object { $_.Type -eq 'Method Type' }
         ColorSequence = @("#2a9d8f", "#8ab17d", "#babb74", "#e9c46a", "#f4a261", "#ee8959", "#e76f51", "#e97c61")
-        FooterText    = '*Total user MFA methods per type'
+        FooterText    = '*Total user Default MFA Methods per type'
         Width         = 450
         Height        = 400
         IsReversed    = $true
@@ -144,8 +142,7 @@ Function New-MFAStateReport {
 
     # Create Critical Admins without MFA Chart
     $splat = @{
-        InputObject   = $mfa_summary | Where-Object { $_.Type -like "*Critical*" } | Sort-Object -Property Value -Descending
-        # ColorSequence = @('#662200','#802b00','#993300','#b33c00','#cc4300','#e64d00','#ff5500','#ff661a','#ff7733','#ff884d','#ff9966','#ffaa80','#ffccb3','#ffddcc')
+        InputObject   = $mfa_summary | Where-Object { $_.Type -like "*Critical Admin Role*" } | Sort-Object -Property Value -Descending
         ColorSequence = @("#a23216", "#c6573c", "#cb664e", "#d0745e", "#d4816d", "#d88c7a", "#dc9686", "#dfa091", "#e2a99b", "#e5b1a4")
         FooterText    = '*Critical admin roles without MFA. (https://bit.ly/3iHEy25)'
         Width         = 450
@@ -185,14 +182,14 @@ Function New-MFAStateReport {
         # Export details to CSV
         $InputObject | Export-Csv -NoTypeInformation -Path "$($OutputDirectory)\MFA_State_Details.csv" -Force -ErrorAction Stop
         # Copy resource files to output directory
-        Copy-Item -Path ("$($ResourceFolder)\*") -Include "icon*.png" -Destination $OutputDirectory -Force -ErrorAction Stop
+        Copy-Item -Path ("$($ResourceFolder)\*") -Include "icon*.png","*.html" -Destination $OutputDirectory -Force -ErrorAction Stop
 
         $HEADER_TEXT1 = ($Organization.replace('_', ' '))
-        $HEADER_TEXT2 = ("Multifactor User State Report as of $(Get-Date)")
+        $HEADER_TEXT2 = ("Multifactor Authentication Status Report as of $(Get-Date)")
         $TITLE_TEXT1 = "[$HEADER_TEXT1] $HEADER_TEXT2"
         $MODULE_INFO = '<a href="' + $ThisModule.ProjectURI + '">' + $ThisModule.Name + ' v' + $ThisModule.Version + '</a>'
 
-        $html = (Get-Content -Raw "$($ResourceFolder)\MFA_State_Report.html")
+        $html = (Get-Content -Raw $HtmlFilename)
         $html = $html.Replace('TITLE_TEXT1', $TITLE_TEXT1)
         $html = $html.Replace('HEADER_TEXT1', $HEADER_TEXT1)
         $html = $html.Replace('HEADER_TEXT2', $HEADER_TEXT2)
@@ -203,6 +200,5 @@ Function New-MFAStateReport {
     catch {
         Write-Warning ($_.Exception.Message)
     }
-
-    $mfa_summary
+    return $mfa_summary
 }

@@ -1,6 +1,10 @@
 Function Get-MFAState {
     [cmdletbinding()]
     param (
+        # Use this parameter to connect to MS Online if you have not connected yet.
+        [parameter()]
+        [PSCredential]
+        $Credential,
         # Use this parameter is you want to get the MFA state for specific UserPrincipalNames only
         [parameter()]
         [string[]]
@@ -24,13 +28,24 @@ Function Get-MFAState {
     )
 
     $alphaTime = $(Get-Date)
+
+    if ($Credential) {
+        try {
+            Connect-MsolService -Credential $Credential -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "$($_.Exception.Message) Exiting script."
+            return $null
+        }
+    }
+
     # Test connection to MSOL
     try {
         $company_info = Get-MsolCompanyInformation -ErrorAction Stop
         $AdminRoles = @((Get-MsolRole -ErrorAction Stop).Name)
     }
     catch {
-        Write-Warning 'You are not connected to the MSOnline PowerShell. Exiting script.'
+        Write-Warning "$($_.Exception.Message) Exiting script."
         return $null
     }
 
@@ -40,7 +55,7 @@ Function Get-MFAState {
         return $null
     }
 
-    # Check if using conflicting parameters
+    # Check if using there are conflicting parameters
     $uniqueParamsCount = 0
     if ($PSBoundParameters.ContainsKey('UserPrincipalName')) { $uniqueParamsCount++ }
     if ($PSBoundParameters.ContainsKey('AllUsers')) { $uniqueParamsCount++ }
@@ -73,7 +88,7 @@ Function Get-MFAState {
         $SnapTime = Get-Date
         Write-Information "$(Get-Date) : Getting all users. Please wait."
         $msolUserList = [System.Collections.ArrayList]@(Get-MsolUser -All | Where-Object { $_.UserType -eq 'Member' } | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed)
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time  = [$(TimeSpan $alphaTime)]."
+        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     # If the -UserObject switch is used, get all users (non-guests)
@@ -81,7 +96,7 @@ Function Get-MFAState {
         $SnapTime = Get-Date
         Write-Information "$(Get-Date) : Filtering the user list to include non-Guest accounts only."
         $msolUserList = [System.Collections.ArrayList]@($UserObject | Where-Object { $_.UserType -eq 'Member' } | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed)
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users filtered. [Task Time = $(TimeSpan $SnapTime)]; Run time  = [$(TimeSpan $alphaTime)]."
+        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users filtered. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     # If the -AdminOnly is used, retrieve the list of admin user accounts.
@@ -97,7 +112,7 @@ Function Get-MFAState {
                 Write-Information "$(Get-Date) : $($_.Exception.Message)"
             }
         }
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time  = [$(TimeSpan $alphaTime)]."
+        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     $TotalUsers = ($msolUserList.Count)
@@ -119,15 +134,6 @@ Function Get-MFAState {
                 ($Admin_Users | Where-Object { $_.ObjectID -eq ($msolUser.ObjectID) }).RoleGroup -join ';'
             }
             $MFA_Method = $(($msolUser.StrongAuthenticationMethods | Where-Object { $_.IsDefault }).MethodType)
-            # $MFA_Phone = $(
-            #     if (!$HidePhoneNumber) {
-            #         # Show phone number if present
-            #         $($msolUser.StrongAuthenticationUserDetails.PhoneNumber)
-            #     }
-            #     else {
-            #         '#NA'
-            #     }
-            # )
 
             # Determine if MFA is enabled per user or via Conditional Access
             $User_MFA_State = $msolUser.StrongAuthenticationRequirements.State
@@ -155,23 +161,22 @@ Function Get-MFAState {
             )
 
             $newMFAUserObject = [PSCustomObject]@{
-                PSTypeName     = "PS.AzAd.User.MFAState.$(($company_info.DisplayName) -replace ' ','_')"
-                'User ID'      = ($msolUser.UserPrincipalName)
-                'Display Name' = $msolUser.DisplayName
-                'User Enabled' = $User_Enabled
-                'Is Admin'     = $isAdmin
-                'Admin Roles'  = $Admin_Role
-                'Is Licensed'  = $($msolUser.IsLicensed)
-                'MFA Enabled'  = $MFA_Enabled
-                'MFA Type'     = $MFA_Type
-                'MFA Method'   = $MFA_Method
-                # 'MFA Phone'    = $MFA_Phone
+                PSTypeName           = "PS.AzAd.User.MFAState.$(($company_info.DisplayName) -replace ' ','_')"
+                'User ID'            = $msolUser.UserPrincipalName
+                'Display Name'       = $msolUser.DisplayName
+                'User Enabled'       = ($User_Enabled -as [boolean])
+                'Is Admin'           = ($isAdmin -as [boolean])
+                'Admin Roles'        = $Admin_Role
+                'Is Licensed'        = ($msolUser.IsLicensed -as [boolean])
+                'MFA Enabled'        = ($MFA_Enabled -as [boolean])
+                'MFA Type'           = $MFA_Type
+                'Default MFA Method' = $MFA_Method
             }
             # Add user details to the final result.
             $null = $Final_Result.Add($newMFAUserObject)
             $userIndex++
         }
-        Write-Information "$(Get-Date) : MFA status check done. [Task Time = $(TimeSpan $SnapTime)]; Run time  = [$(TimeSpan $alphaTime)]."
+        Write-Information "$(Get-Date) : MFA status check done. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
         # Write-Information "$(Get-Date) : Total runtime = [$(TimeSpan $alphaTime)]."
         return $Final_Result
     }

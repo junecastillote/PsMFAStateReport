@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<title>TITLE_TEXT1</title>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+    <style>
+        #parentTable {
+            font-family: 'Segoe UI', Arial, sans-serif, Helvetica, sans-serif;
+            border-collapse: collapse;
+            background-color: white;
+            /* margin-left: auto;
+            margin-right: auto; */
+        }
+
+        body {
+            background-color: white;
+        }
+
+        #dataCard {
+            font-family: 'Segoe UI', Arial, sans-serif, Helvetica, sans-serif;
+            border-collapse: collapse;
+            border: 1px solid #000099;
+            margin: 5px;
+        }
+
+        #dataCard td {
+            padding: 4px;
+        }
+
+        #dataCard th {
+            padding-left: 10px;
+            padding-right: 10px;
+            background-color: #050A30;
+            border: 1px solid #050A30;
+            color: white;
+            font-size: 20px;
+        }
+
+        .TitleHeader {
+            background-color: White;
+            font-family: 'Segoe UI';
+            font-size: 20pt;
+            font-weight: bold;
+            color: #2b2929;
+
+        }
+
+        .SubHeader1 {
+            background-color: White;
+            font-family: 'Segoe UI';
+            font-size: 12pt;
+            font-style: italic;
+            color: #2b2929;
+            padding-bottom: 5px;
+
+        }
+        .hl {
+            border-top: 5px solid #4C5EC3;
+        }
+    </style>
+</head>
+
+<body>
+    <table id="parentTable">
+        <table id="parentTable" style="margin-bottom: 5px;">
+            <tr>
+                <th class="TitleHeader">HEADER_TEXT1</th>
+            </tr>
+            <tr style="padding-bottom: 10px;">
+                <td class="SubHeader1">HEADER_TEXT2</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="hl"></td>
+            </tr>
+        </table>
+        <table id="parentTable" style="margin-bottom: 10px;">
+            <tr>
+                <td style="vertical-align: top;">
+                    <table id="parentTable">
+                        <tr style="padding-top: 10px;">
+                            <!-- Start - MFA Overview -->
+                            <td style="vertical-align: top;">
+                                <table id="dataCard">
+                                    <tr>
+                                        <th align="left"><img src="icon1.png"></th>
+                                        <th align="right">MFA Accounts Overview</th>
+                                        <!-- <th></th> -->
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><img src="MFA_Overview_Chart.png"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <!-- End - MFA Overview -->
+                            <!-- Start - Critical Admins -->
+                            <td style="vertical-align: top;">
+                                <table id="dataCard">
+                                    <tr>
+                                        <th align="left"><img src="icon2.png"></th>
+                                        <th align="right">Critical Admin Roles without MFA</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><a href="https://bit.ly/3iHEy25"><img
+                                                    src="Critical_Admins_without_MFA_Chart.png"></a></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <!-- End - Critical Admins -->
+                        </tr>
+
+                        <tr style="padding-top: 10px;">
+                            <!-- Start - MFA Activation Type -->
+                            <td style="vertical-align: top;">
+                                <table id="dataCard">
+                                    <tr>
+                                        <th align="left"><img src="icon4.png"></th>
+                                        <th align="right">MFA Activation Type</th>
+                                        <!-- <th></th> -->
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><img src="MFA_Type_Chart.png"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <!-- End - MFA Activation Type -->
+                            <!-- Start - MFA Methods -->
+                            <td style="vertical-align: top;">
+                                <table id="dataCard">
+                                    <tr>
+                                        <th align="left"><img src="icon3.png"></th>
+                                        <th align="right">Default MFA Methods</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><img src="MFA_Methods_Chart.png"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <!-- End - MFA Methods -->
+                        </tr>
+
+
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <table id="parentTable">
+            <tr>
+                <td colspan="2" class="hl"></td>
+            </tr>
+            <tr>
+                <td class="SubHeader1">*Please see the attached CSV file for the details.</td>
+            </tr>
+            <tr>
+                <td class="SubHeader1">MODULE_INFO</td>
+            </tr>
+        </table>
+    </table>
+</body>
+
+</html>

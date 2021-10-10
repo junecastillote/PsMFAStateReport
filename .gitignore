@@ -1,0 +1,8 @@
+*.csv
+test*.ps1
+run*.ps1
+temp*
+send*
+mfa_data*
+report/*
+ignore/*

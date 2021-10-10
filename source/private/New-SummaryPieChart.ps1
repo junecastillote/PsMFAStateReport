@@ -25,10 +25,6 @@ Function New-SummaryPieChart {
         $RandomColors,
 
         [parameter()]
-        [switch]
-        $IsReversed,
-
-        [parameter()]
         [string[]]
         $ColorSequence
     )
@@ -71,7 +67,6 @@ Function New-SummaryPieChart {
     $ChartArea.BackHatchStyle = 'LightDownwardDiagonal'
     $ChartArea.BackColor = 'WhiteSmoke'
 
-
     $Chart.ChartAreas.Add($ChartArea)
 
     $Chart.Series.Add([System.Windows.Forms.DataVisualization.Charting.Series]@{
@@ -93,6 +88,14 @@ Function New-SummaryPieChart {
                 CustomProperties    = $(
                     if ($data.Value -lt 1) {
                         'PieLabelStyle=Disabled'
+                    }
+                )
+                IsVisibleInLegend = $(
+                    if ($data.Value -lt 1) {
+                        $false
+                    }
+                    else {
+                        $true
                     }
                 )
                 # LabelBackColor   = '#5c5858'

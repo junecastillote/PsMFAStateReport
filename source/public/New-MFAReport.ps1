@@ -136,9 +136,8 @@ Function New-MFAReport {
             FooterText  = '*Count of user MFA enabled via Conditional Access Policy and User-Level'
             Width       = 450
             Height      = 400
-            IsReversed  = $true
-            #SaveToFile  = "$($ReportDirectory)\MFA_Chart_Types.png"
-            # RandomColors = $true
+            SaveToFile  = "$($ReportDirectory)\MFA_Chart_Types.png"
+            RandomColors = $true
         }
         New-SummaryPieChart @splat
 

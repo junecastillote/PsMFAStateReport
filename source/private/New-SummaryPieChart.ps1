@@ -71,6 +71,7 @@ Function New-SummaryPieChart {
     $ChartArea.BackHatchStyle = 'LightDownwardDiagonal'
     $ChartArea.BackColor = 'WhiteSmoke'
 
+
     $Chart.ChartAreas.Add($ChartArea)
 
     $Chart.Series.Add([System.Windows.Forms.DataVisualization.Charting.Series]@{
@@ -81,11 +82,24 @@ Function New-SummaryPieChart {
             Font             = [System.Drawing.Font]::new('Segoe UI', '10')
         })
 
-    $data = $InputObject | ConvertTo-Hashtable -key Name -value Value
-    $Chart.Series['Series1'].Points.DataBindXY($data.Keys, $data.Values)
-    $Chart.Series['Series1'].Label = "#VALY"
-    $chart.Series["Series1"].LegendText = "#VALX"
+    # $data = $InputObject | ConvertTo-Hashtable -key Name -value Value
+    # $Chart.Series['Series1'].Points.DataBindXY($data.Keys, $data.Value)
     $Chart.Series['Series1']['PieDrawingStyle'] = 'Concave'
+    foreach ($data in $InputObject) {
+        $Chart.Series['Series1'].Points.Add([System.Windows.Forms.DataVisualization.Charting.DataPoint]@{
+                AxisLabel           = $data.Name
+                YValues             = $data.Value
+                IsValueShownAsLabel = $true
+                CustomProperties    = $(
+                    if ($data.Value -lt 1) {
+                        'PieLabelStyle=Disabled'
+                    }
+                )
+                # LabelBackColor   = '#5c5858'
+                # LabelForeColor   = '#e9e1e1'
+                # LabelBorderColor = 'White'
+            })
+    }
 
     if ($ColorSequence) {
         for ($i = 0; $i -le ($Chart.Series['Series1'].Points.Count - 1); $i++) {

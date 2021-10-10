@@ -137,7 +137,10 @@ Function Get-MFAState {
 
             # Determine if MFA is enabled per user or via Conditional Access
             $User_MFA_State = $msolUser.StrongAuthenticationRequirements.State
-            if ($User_MFA_State) {
+            if ($MFA_Method) {
+                $MFA_Enabled = $true
+            }
+            elseif ($User_MFA_State) {
                 $MFA_Type = 'Per User'
                 $MFA_Enabled = $true
             }

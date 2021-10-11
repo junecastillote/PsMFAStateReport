@@ -5,8 +5,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/junecastillote/PsMFAStateReport)](https://github.com/junecastillote/PsMFAStateReport/stars)
 [![GitHub license](https://img.shields.io/github/license/junecastillote/PsMFAStateReport)](https://github.com/junecastillote/PsMFAStateReport/blob/main/LICENSE)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/junecastillote/PsMFAStateReport)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/junecastillote/PsMFAStateReport)
-
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/junecastillote/PsMFAStateReport)
 
 `PsMFAStateReport` is a PowerShell module you can use to retrieve and report the MFA registration status of your Azure AD users. This module generates a summary email showing several MFA-related statistics.
 

@@ -133,11 +133,11 @@ Function New-MFAReport {
 
         # Create MFA Activation Type Chart
         $splat = @{
-            InputObject = $mfa_summary | Where-Object { $_.Type -eq 'Activation Type' }
-            FooterText  = '*Count of user MFA enabled via Conditional Access Policy and User-Level'
-            Width       = 450
-            Height      = 400
-            SaveToFile  = "$($ReportDirectory)\MFA_Chart_Types.png"
+            InputObject  = $mfa_summary | Where-Object { $_.Type -eq 'Activation Type' }
+            FooterText   = '*Count of user MFA enabled via Conditional Access Policy and User-Level'
+            Width        = 450
+            Height       = 400
+            SaveToFile   = "$($ReportDirectory)\MFA_Chart_Types.png"
             RandomColors = $true
         }
         New-SummaryPieChart @splat
@@ -173,8 +173,8 @@ Function New-MFAReport {
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total with MFA' }).Value ; Type = 'Accounts with MFA' }),
             ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
         )
-        if ($mfa_summary.'User Accounts' -gt 0){
-            $mfa_On_Overview = $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
+        if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
+            $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
         }
 
         # Accounts without MFA
@@ -182,8 +182,8 @@ Function New-MFAReport {
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total without MFA' }).Value ; Type = 'Accounts without MFA' }),
             ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
         )
-        if ($mfa_summary.'User Accounts' -gt 0){
-            $mfa_On_Overview = $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users without MFA' }).Value ; Type = 'Accounts with MFA' })
+        if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
+            $mfa_Off_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users without MFA' }).Value ; Type = 'Accounts without MFA' })
         }
 
         $splat = @{

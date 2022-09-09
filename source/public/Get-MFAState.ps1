@@ -166,7 +166,7 @@ Function Get-MFAState {
             )
 
             $newMFAUserObject = [PSCustomObject]@{
-                PSTypeName           = "PS.AzAd.User.MFAState.$(($company_info.DisplayName) -replace ' ','_')"
+                # PSTypeName           = "PS.AzAd.User.MFAState.$(($company_info.DisplayName) -replace ' ','_')"
                 'User ID'            = $msolUser.UserPrincipalName
                 'Display Name'       = $msolUser.DisplayName
                 'User Enabled'       = ($User_Enabled -as [boolean])
@@ -176,6 +176,7 @@ Function Get-MFAState {
                 'MFA Enabled'        = ($MFA_Enabled -as [boolean])
                 'MFA Type'           = $MFA_Type
                 'Default MFA Method' = $MFA_Method
+                'Organization'       = ($company_info.DisplayName)
             }
             # Add user details to the final result.
             $null = $Final_Result.Add($newMFAUserObject)

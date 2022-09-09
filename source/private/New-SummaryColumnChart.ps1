@@ -1,7 +1,8 @@
 Function New-SummaryColumnChart {
     [cmdletbinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter()]
+        [AllowNull()]
         $InputObject,
 
         [Parameter()]
@@ -75,7 +76,7 @@ Function New-SummaryColumnChart {
     $ChartArea.AxisX.MajorGrid.Enabled = $false
     $ChartArea.AxisX.LabelStyle.IsStaggered = $true
     $ChartArea.AxisX.IsReversed = $IsReversed
-    # $ChartArea.AxisX.LabelStyle.Angle = '-90'
+    # $ChartArea.AxisX.LabelStyle.Angle = '30'
     # Y Axis
     $ChartArea.AxisY.Enabled = [System.Windows.Forms.DataVisualization.Charting.AxisEnabled]::False
     $ChartArea.AxisY.IsLabelAutoFit = $true

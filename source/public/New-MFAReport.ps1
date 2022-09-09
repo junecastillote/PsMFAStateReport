@@ -108,8 +108,8 @@ Function New-MFAReport {
         }
 
         # add admin roles without MFA
-        $admins_without_mfa_per_role = @(($dataObject | Where-Object { ($_.'Is Admin' -eq $true) -and ($_.'MFA Enabled' -eq $false) }).'Admin Roles' -join ';').split(';') | Group-Object | Sort-Object Count -Descending | Select-Object Name, Count
-        if ($admins_without_mfa_per_role.count -gt 0) {
+        if (($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value -gt 0) {
+            $admins_without_mfa_per_role = @(($dataObject | Where-Object { ($_.'Is Admin' -eq $true) -and ($_.'MFA Enabled' -eq $false) }).'Admin Roles' -join ';').split(';') | Group-Object | Sort-Object Count -Descending | Select-Object Name, Count
             foreach ($item in $admins_without_mfa_per_role) {
                 # $mfa_summary += ([PSCustomObject]@{Name = $item.Name; Value = $Item.Count ; Type = 'Admin Role' })
                 $mfa_summary += (
@@ -135,7 +135,7 @@ Function New-MFAReport {
         $splat = @{
             InputObject  = $mfa_summary | Where-Object { $_.Type -eq 'Activation Type' }
             FooterText   = '*Count of user MFA enabled via Conditional Access Policy and User-Level'
-            Width        = 450
+            Width        = 600
             Height       = 400
             SaveToFile   = "$($ReportDirectory)\MFA_Chart_Types.png"
             RandomColors = $true
@@ -147,7 +147,7 @@ Function New-MFAReport {
             InputObject   = $mfa_summary | Where-Object { $_.Type -eq 'Method Type' }
             ColorSequence = @("#2a9d8f", "#8ab17d", "#babb74", "#e9c46a", "#f4a261", "#ee8959", "#e76f51", "#e97c61")
             FooterText    = '*Total user Default MFA Methods per type'
-            Width         = 450
+            Width         = 600
             Height        = 400
             IsReversed    = $true
             SaveToFile    = "$($ReportDirectory)\MFA_Chart_Methods.png"
@@ -160,7 +160,7 @@ Function New-MFAReport {
             InputObject   = $mfa_summary | Where-Object { $_.Type -like "*Critical Admin Role*" } | Sort-Object -Property Value -Descending
             ColorSequence = @("#a23216", "#c6573c", "#cb664e", "#d0745e", "#d4816d", "#d88c7a", "#dc9686", "#dfa091", "#e2a99b", "#e5b1a4")
             FooterText    = '*Critical admin roles without MFA. (https://bit.ly/3iHEy25)'
-            Width         = 450
+            Width         = 600
             Height        = 400
             IsReversed    = $true
             SaveToFile    = "$($ReportDirectory)\MFA_Chart_Admins.png"
@@ -174,7 +174,7 @@ Function New-MFAReport {
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total with MFA' }).Value ; Type = 'Accounts with MFA' })
         )
         if (($mfa_summary | Where-Object { $_.Name -eq 'Admin Accounts' }).Value -gt 0) {
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
+            $mfa_On_Overview += ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
         }
         if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
             $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
@@ -185,7 +185,7 @@ Function New-MFAReport {
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total without MFA' }).Value ; Type = 'Accounts without MFA' })
         )
         if (($mfa_summary | Where-Object { $_.Name -eq 'Admin Accounts' }).Value -gt 0) {
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
+            $mfa_Off_Overview += ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
         }
 
         if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
@@ -195,7 +195,7 @@ Function New-MFAReport {
         $splat = @{
             InputObject = @($mfa_On_Overview, $mfa_Off_Overview)
             FooterText  = '*MFA state overview of admin and non-admin accounts'
-            Width       = 450
+            Width       = 600
             Height      = 400
             IsReversed  = $true
             SaveToFile  = "$($ReportDirectory)\MFA_Chart_Overview.png"

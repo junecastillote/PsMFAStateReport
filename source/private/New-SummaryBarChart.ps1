@@ -1,7 +1,8 @@
 Function New-SummaryBarChart {
     [cmdletbinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter()]
+        [AllowNull]
         $InputObject,
 
         [Parameter()]
@@ -38,12 +39,12 @@ Function New-SummaryBarChart {
     Add-Type -AssemblyName System.Windows.Forms.DataVisualization
 
     if (($ColorSequence.Count) -and (($ColorSequence.Count) -lt ($InputObject.Count))) {
-        Write-Warning "The number of colors you specified [$($ColorSequence.Count)] is less than the number of datapoints [$($InputObject.Count))] to add in the chart. Either add more colors to match the datapoints or do not use the ColorSequence parameter to use the default colors."
+        SayWarning "The number of colors you specified [$($ColorSequence.Count)] is less than the number of datapoints [$($InputObject.Count))] to add in the chart. Either add more colors to match the datapoints or do not use the ColorSequence parameter to use the default colors."
         return $null
     }
 
     if ($ColorSequence -and $RandomColors) {
-        Write-Warning "You selected both ColorSequence and RandomColors. You should only use one color related parameter. Otherwise, ColorSequence will take effect and RandomColors will be ignored."
+        SayWarning "You selected both ColorSequence and RandomColors. You should only use one color related parameter. Otherwise, ColorSequence will take effect and RandomColors will be ignored."
         $RandomColors = $false
     }
 

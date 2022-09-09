@@ -34,7 +34,7 @@ Function Get-MFAState {
             Connect-MsolService -Credential $Credential -ErrorAction Stop
         }
         catch {
-            Write-Warning "$($_.Exception.Message) Exiting script."
+            SayWarning "$($_.Exception.Message) Exiting script."
             return $null
         }
     }
@@ -45,13 +45,13 @@ Function Get-MFAState {
         $AdminRoles = @((Get-MsolRole -ErrorAction Stop).Name)
     }
     catch {
-        Write-Warning "$($_.Exception.Message) Exiting script."
+        SayWarning "$($_.Exception.Message) Exiting script."
         return $null
     }
 
     # If no user list is provided, exit script.
     if (!$UserPrincipalName -and !$AllUsers -and !$UserObject -and !$AdminOnly) {
-        Write-Warning "The user list is empty. `n  -> Use the -UserPrincipalName to provide the list of UserPrincipalName values.`n  -> Use the -All switch to get all users.`n  -> Use the -UserObject to specify [Microsoft.Online.Administration.User] objects.`n  -> Use the -AdminOnly to get the administrator accounts only. Exiting script.)"
+        SayWarning "The user list is empty. `n  -> Use the -UserPrincipalName to provide the list of UserPrincipalName values.`n  -> Use the -All switch to get all users.`n  -> Use the -UserObject to specify [Microsoft.Online.Administration.User] objects.`n  -> Use the -AdminOnly to get the administrator accounts only. Exiting script.)"
         return $null
     }
 
@@ -62,11 +62,11 @@ Function Get-MFAState {
     if ($PSBoundParameters.ContainsKey('UserObject')) { $uniqueParamsCount++ }
     if ($PSBoundParameters.ContainsKey('AdminOnly')) { $uniqueParamsCount++ }
     if ($uniqueParamsCount -gt 1) {
-        Write-Warning "'Do not use the -UserPrincipalName, -AllUsers, -UserObject, and -AdminOnly parameters simultaneously.' `n  -> Use the -UserPrincipalName to provide the list of UserPrincipalName values.`n  -> Use the -All switch to get all users.`n  -> Use the -UserObject to specify [Microsoft.Online.Administration.User] objects.`n  -> Use the -AdminOnly to get the administrator accounts only. Exiting script.)"
+        SayWarning "'Do not use the -UserPrincipalName, -AllUsers, -UserObject, and -AdminOnly parameters simultaneously.' `n  -> Use the -UserPrincipalName to provide the list of UserPrincipalName values.`n  -> Use the -All switch to get all users.`n  -> Use the -UserObject to specify [Microsoft.Online.Administration.User] objects.`n  -> Use the -AdminOnly to get the administrator accounts only. Exiting script.)"
         return $null
     }
 
-    Write-Information "$(Get-Date) : Getting all users with administrator roles. Please wait."
+    SayInfo "Getting all users with administrator roles. Please wait."
     $Admin_Users = @(Get-AdminRoleMember -RoleName $AdminRoles)
 
     # Build the user list.
@@ -78,7 +78,7 @@ Function Get-MFAState {
                 $null = $msolUserList.Add($( Get-MsolUser -UserPrincipalName $_ -ErrorAction STOP | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed))
             }
             catch {
-                Write-Information "$(Get-Date) : $($_.Exception.Message)"
+                SayInfo "$($_.Exception.Message)"
             }
         }
     }
@@ -86,33 +86,33 @@ Function Get-MFAState {
     # If the -AllUsers switch is used, get all users (non-guests)
     if ($AllUsers) {
         $SnapTime = Get-Date
-        Write-Information "$(Get-Date) : Getting all users. Please wait."
+        SayInfo "Getting all users. Please wait."
         $msolUserList = [System.Collections.ArrayList]@(Get-MsolUser -All | Where-Object { $_.UserType -eq 'Member' } | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed)
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
+        SayInfo "There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     # If the -UserObject switch is used, get all users (non-guests)
     if ($UserObject) {
         $SnapTime = Get-Date
-        Write-Information "$(Get-Date) : Filtering the user list to include non-Guest accounts only."
+        SayInfo "Filtering the user list to include non-Guest accounts only."
         $msolUserList = [System.Collections.ArrayList]@($UserObject | Where-Object { $_.UserType -eq 'Member' } | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed)
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users filtered. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
+        SayInfo "There are $($msolUserList.Count) users filtered. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     # If the -AdminOnly is used, retrieve the list of admin user accounts.
     if ($AdminOnly) {
         $SnapTime = Get-Date
-        Write-Information "$(Get-Date) : Filtering the user list to include Administrators only."
+        SayInfo "Filtering the user list to include Administrators only."
         $msolUserList = [System.Collections.ArrayList]@()
         ( $Admin_Users | Sort-Object -Property ObjectID | Select-Object -Property ObjectID -Unique  ) | ForEach-Object {
             try {
                 $null = $msolUserList.Add(@(Get-MsolUser -ObjectId ($_.ObjectID) -ErrorAction STOP | Select-Object ObjectID, UserPrincipalName, DisplayName, StrongAuth*, IsLicensed))
             }
             catch {
-                Write-Information "$(Get-Date) : $($_.Exception.Message)"
+                SayInfo "$($_.Exception.Message)"
             }
         }
-        Write-Information "$(Get-Date) : There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
+        SayInfo "There are $($msolUserList.Count) users retrieved. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
     }
 
     $TotalUsers = ($msolUserList.Count)
@@ -122,11 +122,13 @@ Function Get-MFAState {
         # Create empty placeholder for the final result.
         $Final_Result = [System.Collections.ArrayList]@()
         $SnapTime = Get-Date
-        Write-Information "$(Get-Date) : Start checking MFA state."
+        SayInfo "Start checking MFA state."
         $userIndex = 0
         foreach ($msolUser in ($msolUserList | Sort-Object -Property UserPrincipalName) ) {
             $percentComplete = [math]::Round((($userIndex / $TotalUsers) * 100))
-            Write-Progress -Activity "Checking user MFA details... $($msolUser.UserPrincipalName)" -Status "($userIndex of $TotalUsers) $percentComplete%" -PercentComplete $percentComplete
+            # Write-Progress -Activity "Checking user MFA details... $($msolUser.UserPrincipalName)" -Status "($userIndex of $TotalUsers) $percentComplete%" -PercentComplete $percentComplete
+            # SayInfo "["{0:000}" -f $percentComplete%] ["{0:$("0"*($TotalUsers.ToString().Length))}" -f $userIndex of $TotalUsers] - [$($msolUser.UserPrincipalName)]"
+            SayInfo "[$("{0:000}" -f $percentComplete)%] [$("{0:$("0"*($TotalUsers.ToString().Length))}" -f ($userIndex+1)) of $TotalUsers] - [$($msolUser.UserPrincipalName)]"
 
             # Check if user is a member of any role groups.
             $isAdmin = (($Admin_Users.ObjectID) -contains ($msolUser.ObjectID))
@@ -182,8 +184,8 @@ Function Get-MFAState {
             $null = $Final_Result.Add($newMFAUserObject)
             $userIndex++
         }
-        Write-Information "$(Get-Date) : MFA status check done. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
-        # Write-Information "$(Get-Date) : Total runtime = [$(TimeSpan $alphaTime)]."
+        SayInfo "MFA status check done. [Task Time = $(TimeSpan $SnapTime)]; Run time = [$(TimeSpan $alphaTime)]."
+        # SayInfo "Total runtime = [$(TimeSpan $alphaTime)]."
         return $Final_Result
     }
 }

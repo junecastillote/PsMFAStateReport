@@ -50,8 +50,8 @@ Function Send-MFAReport {
         $ReportDirectory = "$(Resolve-Path $ReportDirectory -ErrorAction STOP)"
     }
     catch {
-        Write-Warning "Error resolving the ReportDirectory path. Make sure that the folder exist and it contains the report files."
-        Write-Warning $_.Exception.Message
+        SayWarning "Error resolving the ReportDirectory path. Make sure that the folder exist and it contains the report files."
+        SayWarning $_.Exception.Message
         return $null
     }
 
@@ -68,7 +68,7 @@ Function Send-MFAReport {
         $mailBody = (Get-Content "$($ReportDirectory)\MFA_State_Report.html" -Raw -ErrorAction Stop).Replace('src="','src="cid:')
     }
     catch {
-        Write-Warning "$($_.Exception.Message) Abort send."
+        SayWarning "$($_.Exception.Message) Abort send."
         return $null
     }
 

@@ -20,7 +20,7 @@ Function Get-AdminRoleMember {
     foreach ($role in $roles) {
         # Get members of the role group
         $RoleMembers = @(Get-MsolRoleMember -RoleObjectId $($role.ObjectId) | Where-Object { $_.RoleMemberType -eq 'User' } | Select-Object ObjectID, EmailAddress, DisplayName)
-        Write-Information "$(Get-Date) : [$($role.Name)] members = $($RoleMembers.Count)."
+        SayInfo "[$($role.Name)] members = $($RoleMembers.Count)."
         if ($RoleMembers) {
             # Add each role group member to the final result
             foreach ($member in $RoleMembers) {

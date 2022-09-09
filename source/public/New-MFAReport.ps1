@@ -38,17 +38,17 @@ Function New-MFAReport {
 
         if (!(Test-Path -Path $ReportDirectory)) {
             try {
-                Write-Information "$(Get-Date) : Attempting to create the output directory $ReportDirectory."
+                SayInfo "Attempting to create the output directory $ReportDirectory."
                 $null = New-Item -ItemType Directory -Path $ReportDirectory -Force -ErrorAction Stop
-                Write-Information "$(Get-Date) : Success: Output directory creation"
+                SayInfo "Success: Output directory creation"
             }
             catch {
-                Write-Information "$(Get-Date) : Fail: There was an error creating the output directory.`n$($_.Exception.Message)."
+                SayInfo "Fail: There was an error creating the output directory.`n$($_.Exception.Message)."
                 return $null
             }
         }
         else {
-            Write-Information "$(Get-Date) : Output directory already exists [$ReportDirectory]."
+            SayInfo "Output directory already exists [$ReportDirectory]."
         }
         $HtmlFilename = "$($ReportDirectory)\MFA_State_Report.html"
 
@@ -70,7 +70,7 @@ Function New-MFAReport {
         #Validate the InputObject type shpuld be "PS.AzAd.User.MFAState.Company_Name"
         # $ObjectTypeName = ($dataObject | Get-Member)[0].TypeName
         # if ($ObjectTypeName -notlike "*PS.AzAd.User.MFAState.*") {
-        #     Write-Warning "The object type you are trying to process does not match the type [PS.AzAd.User.MFAState.Company_Name]. The object may be corrupted."
+        #     SayWarning "The object type you are trying to process does not match the type [PS.AzAd.User.MFAState.Company_Name]. The object may be corrupted."
         #     return $null
         # }
 
@@ -83,7 +83,7 @@ Function New-MFAReport {
         # $ReportDirectory = "$($ReportDirectory)\$($Organization)"
 
         #Region Summary Object
-        Write-Information "$(Get-Date) : Creating the report summary object."
+        SayInfo "Creating the report summary object."
 
         $mfa_summary = @(
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = $dataObject.Count ; Type = 'Overview' }),
@@ -165,23 +165,29 @@ Function New-MFAReport {
             IsReversed    = $true
             SaveToFile    = "$($ReportDirectory)\MFA_Chart_Admins.png"
         }
+
         New-SummaryBarChart @splat
 
         # Create MFA Overview Chart
         # Accounts with MFA
         $mfa_On_Overview = @(
-            ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total with MFA' }).Value ; Type = 'Accounts with MFA' }),
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
+            ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total with MFA' }).Value ; Type = 'Accounts with MFA' })
         )
+        if (($mfa_summary | Where-Object { $_.Name -eq 'Admin Accounts' }).Value -gt 0) {
+            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
+        }
         if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
             $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
         }
 
         # Accounts without MFA
         $mfa_Off_Overview = @(
-            ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total without MFA' }).Value ; Type = 'Accounts without MFA' }),
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
+            ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total without MFA' }).Value ; Type = 'Accounts without MFA' })
         )
+        if (($mfa_summary | Where-Object { $_.Name -eq 'Admin Accounts' }).Value -gt 0) {
+            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
+        }
+
         if (($mfa_summary | Where-Object { $_.Name -eq 'User Accounts' }).Value -gt 0) {
             $mfa_Off_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users without MFA' }).Value ; Type = 'Accounts without MFA' })
         }
@@ -215,10 +221,10 @@ Function New-MFAReport {
             $html = $html.Replace('HEADER_TEXT2', $HEADER_TEXT2)
             $html = $html.Replace('MODULE_INFO', $MODULE_INFO)
             $html | Out-File $HtmlFilename -Force -Encoding utf8
-            Write-Information "$(Get-Date) : HTML report saved to $($HtmlFilename)."
+            SayInfo "HTML report saved to $($HtmlFilename)."
         }
         catch {
-            Write-Warning ($_.Exception.Message)
+            SayWarning ($_.Exception.Message)
         }
         return $mfa_summary
     }

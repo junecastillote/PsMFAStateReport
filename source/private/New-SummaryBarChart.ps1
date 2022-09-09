@@ -2,7 +2,7 @@ Function New-SummaryBarChart {
     [cmdletbinding()]
     param (
         [Parameter()]
-        [AllowNull]
+        [AllowNull()]
         $InputObject,
 
         [Parameter()]

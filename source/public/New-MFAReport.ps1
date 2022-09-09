@@ -68,13 +68,14 @@ Function New-MFAReport {
     end {
 
         #Validate the InputObject type shpuld be "PS.AzAd.User.MFAState.Company_Name"
-        $ObjectTypeName = ($dataObject | Get-Member)[0].TypeName
-        if ($ObjectTypeName -notlike "*PS.AzAd.User.MFAState.*") {
-            Write-Warning "The object type you are trying to process does not match the type [PS.AzAd.User.MFAState.Company_Name]. The object may be corrupted."
-            return $null
-        }
+        # $ObjectTypeName = ($dataObject | Get-Member)[0].TypeName
+        # if ($ObjectTypeName -notlike "*PS.AzAd.User.MFAState.*") {
+        #     Write-Warning "The object type you are trying to process does not match the type [PS.AzAd.User.MFAState.Company_Name]. The object may be corrupted."
+        #     return $null
+        # }
 
-        $Organization = (($ObjectTypeName).Split('.')[-1])
+        # $Organization = (($ObjectTypeName).Split('.')[-1])
+        $Organization = $dataObject[0].Organization
 
         $ThisFunction = ($MyInvocation.MyCommand)
         $ThisModule = Get-Module ($ThisFunction.Source)
@@ -170,16 +171,20 @@ Function New-MFAReport {
         # Accounts with MFA
         $mfa_On_Overview = @(
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total with MFA' }).Value ; Type = 'Accounts with MFA' }),
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' }),
-            ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
+            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins with MFA' }).Value ; Type = 'Accounts with MFA' })
         )
+        if ($mfa_summary.'User Accounts' -gt 0){
+            $mfa_On_Overview = $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users with MFA' }).Value ; Type = 'Accounts with MFA' })
+        }
 
         # Accounts without MFA
         $mfa_Off_Overview = @(
             ([PSCustomObject]@{Name = 'Total Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Total without MFA' }).Value ; Type = 'Accounts without MFA' }),
-            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' }),
-            ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users without MFA' }).Value ; Type = 'Accounts without MFA' })
+            ([PSCustomObject]@{Name = 'Admin Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Admins without MFA' }).Value ; Type = 'Accounts without MFA' })
         )
+        if ($mfa_summary.'User Accounts' -gt 0){
+            $mfa_On_Overview = $mfa_On_Overview += ([PSCustomObject]@{Name = 'User Accounts'; Value = ($mfa_summary | Where-Object { $_.Name -eq 'Users without MFA' }).Value ; Type = 'Accounts with MFA' })
+        }
 
         $splat = @{
             InputObject = @($mfa_On_Overview, $mfa_Off_Overview)
@@ -200,7 +205,7 @@ Function New-MFAReport {
             Copy-Item -Path ("$($ResourceFolder)\*") -Include "MFA_*.png", "MFA_*.html" -Destination $ReportDirectory -Force -ErrorAction Stop
 
             $HEADER_TEXT1 = ($Organization.replace('_', ' '))
-            $HEADER_TEXT2 = ("Multifactor Authentication Status Report as of $(Get-Date)")
+            $HEADER_TEXT2 = ("Multifactor Authentication Status Report as of $(Get-Date -Format "yyyy-MMM-dd HH:mm tt")")
             $TITLE_TEXT1 = "[$HEADER_TEXT1] $HEADER_TEXT2"
             $MODULE_INFO = '<a href="' + $ThisModule.ProjectURI + '">' + $ThisModule.Name + ' v' + $ThisModule.Version + '</a>'
 
@@ -217,8 +222,4 @@ Function New-MFAReport {
         }
         return $mfa_summary
     }
-
-
-
-
 }

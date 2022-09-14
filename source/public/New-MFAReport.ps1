@@ -62,7 +62,10 @@ Function New-MFAReport {
     }
     process {
         If ($isPipeline) {
-            $null = $dataObject.Add($_)
+            # $null = $dataObject.Add($_)
+            if ($_.'User Enabled' -eq $true) {
+                $null = $dataObject.Add($_)
+            }
         }
     }
     end {

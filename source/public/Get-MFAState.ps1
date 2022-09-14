@@ -106,7 +106,7 @@ Function Get-MFAState {
         $msolUserList = [System.Collections.ArrayList]@()
         ( $Admin_Users | Sort-Object -Property ObjectID | Select-Object -Property ObjectID -Unique  ) | ForEach-Object {
             try {
-                $null = $msolUserList.Add(@(Get-MsolUser -ObjectId ($_.ObjectID) -ErrorAction STOP | Select-Object ObjectID, UserPrincipalName, DisplayName, StrongAuth*, IsLicensed))
+                $null = $msolUserList.Add(@(Get-MsolUser -ObjectId ($_.ObjectID) -ErrorAction STOP | Select-Object ObjectID, UserPrincipalName, DisplayName, BlockCredential, StrongAuth*, IsLicensed))
             }
             catch {
                 SayInfo "$($_.Exception.Message)"
